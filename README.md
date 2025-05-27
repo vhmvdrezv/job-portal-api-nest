@@ -21,79 +21,113 @@
 </p>
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Job Portal API
 
-## Description
+A scalable, secure, and modern Job Portal REST API built with [NestJS](https://nestjs.com/), [Prisma ORM](https://www.prisma.io/), and PostgreSQL.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+- User registration and authentication (JWT)
+- Email verification flow
+- Role-based access control (RBAC): Seeker, Employer, Admin
+- CRUD operations for jobs and job locations
+- Modular, testable architecture
+- Input validation and error handling
 
-```bash
-$ npm install
-```
+## Tech Stack
 
-## Compile and run the project
+- **Backend Framework:** [NestJS](https://nestjs.com/)
+- **ORM:** [Prisma](https://www.prisma.io/)
+- **Database:** PostgreSQL
+- **Authentication:** JWT (Passport.js)
+- **Validation:** class-validator, class-transformer
+- **Mail:** Nodemailer
 
-```bash
-# development
-$ npm run start
+## Getting Started
 
-# watch mode
-$ npm run start:dev
+### Prerequisites
 
-# production mode
-$ npm run start:prod
-```
+- Node.js (v18+ recommended)
+- npm or yarn
+- PostgreSQL database
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Installation
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+git clone https://github.com/your-username/job-portal-api.git
+cd job-portal-api
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Environment Variables
 
-## Resources
+Create a `.env` file in the root directory and set the following variables:
 
-Check out a few resources that may come in handy when working with NestJS:
+```
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+JWT_SECRET=your_jwt_secret
+MAIL_HOST=smtp.example.com
+MAIL_USER=your_email@example.com
+MAIL_PASS=your_email_password
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Database Migration & Seeding
 
-## Support
+```bash
+npx prisma migrate deploy
+npm run seed
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Running the Application
 
-## Stay in touch
+```bash
+# Development
+npm run start:dev
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Production
+npm run build
+npm run start:prod
+```
+
+### Running Tests
+
+```bash
+# Unit tests
+npm run test
+
+# End-to-end tests
+npm run test:e2e
+```
+
+## API Documentation
+
+- RESTful endpoints for authentication and job management
+- Protected routes using JWT and RBAC
+- See controller files for detailed route information
+
+## Project Structure
+
+```
+src/
+  ├── auth/         # Authentication & user management
+  ├── jobs/         # Job CRUD and business logic
+  ├── mail/         # Email service
+  ├── database/     # Prisma database integration
+  ├── common/       # Shared decorators, guards, etc.
+  └── app.module.ts # Main application module
+prisma/
+  ├── schema.prisma # Prisma schema
+  └── seed.ts       # Seed data script
+```
+
+## Contributing
+
+Contributions are welcome! Please open issues or submit pull requests.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+[MIT](LICENSE)
+
+---
+
+**Author:** [Your Name](https://github.com/your-username)
