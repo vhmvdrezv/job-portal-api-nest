@@ -31,13 +31,16 @@ export class JobsService {
         }
     }
 
-    async createJob(createJobDto: CreateJobDto) {
+    async createJob(createJobDto: CreateJobDto, userId: number) {
         const { title, description, location, salary } = createJobDto;
 
         const result = await this.databaseService.$transaction(async (tx) => {
             const job = await tx.job.create({
                 data: {
-                    title, description, salary
+                    title,
+                    description,
+                    salary,
+                    userId
                 }
             });
 

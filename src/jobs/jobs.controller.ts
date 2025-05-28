@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -21,8 +21,8 @@ export class JobsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('EMPLOYER')
     @Post()
-    async createJob(@Body() createJobDto: CreateJobDto) {
-        return this.jobsService.createJob(createJobDto);
+    async createJob(@Body() createJobDto: CreateJobDto, @Req() req) {
+        return this.jobsService.createJob(createJobDto, req.user.userId);
     }
 
     @Get(':id')
