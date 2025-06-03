@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { instanceToPlain } from 'class-transformer';
@@ -153,8 +153,19 @@ export class JobsService {
         }
     }
     
-    async updateJob(id: number, updateJobDto: UpdateJobDto) {
+    async updateJob(id: number, updateJobDto: UpdateJobDto, user: any) {
         const { title, description, salary, location } = updateJobDto;
+
+        const job = await this.databaseService.job.findUnique({
+            where: {
+                id
+            }
+        })
+        
+        if (!job) throw new NotFoundException('job not found');
+        if (job.userId !== user.userId) throw new ForbiddenException('You dont have access to update this job');
+        if (job.status !== JobStatus.ACTIVE) throw new ForbiddenException('You can`t update pending jobs')
+
         const result = await this.databaseService.$transaction(async (tx) => {
             const job = await tx.job.update({
                 where: { id }, 

@@ -1,4 +1,36 @@
-import { PartialType } from "@nestjs/mapped-types";
-import { CreateJobDto } from "./create-job.dto";
+import { Type } from "class-transformer";
+import { IsInt, IsNotEmpty, IsOptional, ValidateNested } from "class-validator";
 
-export class UpdateJobDto extends PartialType(CreateJobDto) { };
+class LocationDto {
+    @IsOptional()
+    @IsNotEmpty()
+    city?: string;
+
+    @IsOptional()
+    @IsNotEmpty()
+    street?: string;
+
+    @IsOptional()
+    @IsNotEmpty()
+    alley?: string;
+}
+
+export class UpdateJobDto {
+    @IsOptional()
+    @IsNotEmpty()
+    title?: string;
+
+    @IsNotEmpty()
+    @IsOptional()
+    description?: string;
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => LocationDto)
+    location?: LocationDto;
+
+    @IsOptional()
+    @IsNotEmpty()
+    @IsInt()
+    salary?: number;
+}

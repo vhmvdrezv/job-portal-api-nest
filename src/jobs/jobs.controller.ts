@@ -37,8 +37,8 @@ export class JobsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.EMPLOYER)
     @Patch(':id')
-    async updateJobById(@Param('id', ParseIntPipe) id: number, @Body() updateJobDto: UpdateJobDto) {
-        return this.jobsService.updateJob(id, updateJobDto);
+    async updateJobById(@Param('id', ParseIntPipe) id: number, @Body() updateJobDto: UpdateJobDto, @Req() req: any) {
+        return this.jobsService.updateJob(id, updateJobDto, req.user);
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
