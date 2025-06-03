@@ -3,7 +3,10 @@ import { DatabaseService } from 'src/database/database.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { instanceToPlain } from 'class-transformer';
 import { UpdateJobDto } from './dto/update-job.dto';
-import { JobStatus } from '@prisma/client';
+import { JobStatus, UserRole } from '@prisma/client';
+import { GetJobsDto } from './dto/get-jobs.dto';
+import { take } from 'rxjs';
+import { GetJobsAdminDto } from './dto/get-jobs-admin.dto';
 
 @Injectable()
 export class JobsService {
@@ -12,22 +15,77 @@ export class JobsService {
     ) { };
 
 
-    async getAllJobs() {
+    async getAllJobs(getJobsDto: GetJobsDto, user: any) {
+        const { page = 1, limit = 5} = getJobsDto;
+
+        const where: any = { status: JobStatus.ACTIVE };
+
         const jobs = await this.databaseService.job.findMany({
-            where: { },
+            where,
             include: { jobLocation: true },
             omit: {
                 createdAt: true,
                 updatedAt: true,
-
-            }
+            },
+            skip: (page - 1) * limit,
+            take: limit,
         })
+
+        const total = await this.databaseService.job.count({
+            where,
+        })
+
+        const totalPages = Math.ceil(total / limit);
+
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
 
         // implementing pagination
         return {
             status: 'success',
             message: 'all jobs retrieved.',
-            data: jobs
+            data: jobs,
+            hasPrev,
+            hasNext,
+            totalPages
+        }
+    }
+
+    async getAllJobsAdmin(getJobsDto: GetJobsAdminDto) {
+        const { page = 1, limit = 5, status } = getJobsDto;
+
+        const where: any = { };
+
+        if (status) where.status = status;
+
+        const jobs = await this.databaseService.job.findMany({
+            where,
+            include: { jobLocation: true },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+        })
+
+        const total = await this.databaseService.job.count({
+            where,
+        })
+
+        const totalPages = Math.ceil(total / limit);
+
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
+
+        // implementing pagination
+        return {
+            status: 'success',
+            message: 'all jobs retrieved.',
+            data: jobs,
+            hasPrev,
+            hasNext,
+            totalPages
         }
     }
 
@@ -63,7 +121,7 @@ export class JobsService {
         }
     } 
 
-    async getJobById(id: number) {
+    async getJobById(id: number, user: any) {
         const job = await this.databaseService.job.findUnique({
             where: { id },
             omit: {
@@ -74,6 +132,19 @@ export class JobsService {
         });
 
         if (!job) throw new NotFoundException(`not found job with id ${id}`);
+
+        // Only allow access to this job if:
+        // - It's active
+        // - Or the user is an admin
+        // - Or the user is the owner
+        // Otherwise, pretend the job doesn't exist to unauthorized users
+        const isInactive = job.status !== JobStatus.ACTIVE;
+        const isNotAdmin = user?.role !== UserRole.ADMIN;
+        const isNotOwner = job.userId !== user?.id;
+
+        if (isInactive && isNotAdmin && isNotOwner) {
+            throw new NotFoundException(`job with id ${id} not found`);
+        }
 
         return {
             status: "success",
