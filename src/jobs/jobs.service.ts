@@ -7,6 +7,7 @@ import { JobStatus, UserRole } from '@prisma/client';
 import { GetJobsDto } from './dto/get-jobs.dto';
 import { take } from 'rxjs';
 import { GetJobsAdminDto } from './dto/get-jobs-admin.dto';
+import { UpdateJobAdminDto } from './dto/update-job-admin.dto';
 
 @Injectable()
 export class JobsService {
@@ -197,14 +198,49 @@ export class JobsService {
         }
     }
 
-    async deleteJob(id: number) {
+    async updateJobAdmin(id: number, updateJobDto: UpdateJobAdminDto) {
+        const { status } = updateJobDto;
+
+        const jobExists = await this.databaseService.job.findUnique({
+            where: {
+                id
+            }
+        });
+
+        if (!jobExists) throw new NotFoundException(`job with id ${id} not found`);
+
+        const updatedJob = await this.databaseService.job.update({
+            where: {
+                id
+            },
+            data: {
+                status
+            },
+            include: { jobLocation: true },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+            }
+        });
+
+        return {
+            status: 'success',
+            message: `job with id ${id} updated`,
+            data: updatedJob
+        }
+
+    }
+
+    async deleteJob(id: number, user: any) {
         const job = await this.databaseService.job.findUnique({
             where: {
                 id
             }
         });
 
-        if (!job) throw new NotFoundException(`job with id ${id} not found`)
+        if (!job) throw new NotFoundException(`job with id ${id} not found`);
+
+        if (job.userId !== user.userId) throw new ForbiddenException(`You dont have access to delete this job`)
 
         await this.databaseService.job.delete({
             where: {

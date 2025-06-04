@@ -44,8 +44,8 @@ export class JobsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.EMPLOYER)
     @Delete(':id')
-    async deleteJob(@Param('id', ParseIntPipe) id: number) {
-        return this.jobsService.deleteJob(id);
+    async deleteJob(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+        return this.jobsService.deleteJob(id, req.user);
     }
 
 }

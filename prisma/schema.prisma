@@ -73,7 +73,6 @@ enum JobStatus {
   ACTIVE
   INACTIVE
   PENDING
-  DEACTIVATED
   REJECTED
 }
 
