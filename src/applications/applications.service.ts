@@ -1,15 +1,8 @@
-
-
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
-import { UpdateApplicationDto } from './dto/update-application.dto';
-import { ApplicationStatus, JobStatus, UserRole } from '@prisma/client';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
-
-const unlinkAsync = promisify(fs.unlink);
+import { JobStatus, } from '@prisma/client';
+import { GetApplicationDto } from './dto/get-application.dto';
 
 @Injectable()
 export class ApplicationsService {
@@ -84,7 +77,7 @@ export class ApplicationsService {
             omit: {
                 createdAt: true,
                 updatedAt: true,
-                
+
             }
         });
         
@@ -94,4 +87,61 @@ export class ApplicationsService {
             data: application
         };
     }
+
+    async getAllApplication(getApplicationDto: GetApplicationDto) {
+        const { page = 1, limit = 3, status } = getApplicationDto;
+
+        const where: any = {
+            status
+        }
+
+        const applications = await this.databaseService.application.findMany({
+            where,
+            include: {
+                job: {
+                    select: {
+                        id: true,
+                        title: true
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                    }
+                }
+            },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit
+        });
+
+        const total = await this.databaseService.application.count({
+            where
+        });
+
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            status: 'success',
+            message: 'All applications retrieved successfully',
+            data: applications,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+                total
+            }
+        };
+
+
+
+    }
 }
+

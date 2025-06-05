@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseIntPipe, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from '@prisma/client';
 import { diskStorage } from 'multer';
@@ -8,6 +8,7 @@ import { Roles } from 'src/common/decorators/roles.decorators';
 import { RolesGuard } from 'src/common/guards/roles.guards';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { ApplicationsService } from './applications.service';
+import { GetApplicationDto } from './dto/get-application.dto';
 
 const storage = diskStorage({
     destination: './uploads/resumes',
@@ -48,5 +49,12 @@ export class ApplicationsController {
         @Req() req: any
     ) {
         return this.applicationService.createApplication(jobId, createApplicationDto, req.user.userId, file);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN)
+    @Get()
+    async getAllApplications(@Query() getApplicationDto: GetApplicationDto) { 
+        return this.applicationService.getAllApplication(getApplicationDto);
     }
 }
