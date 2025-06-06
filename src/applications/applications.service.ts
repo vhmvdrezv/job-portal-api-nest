@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
-import { JobStatus, } from '@prisma/client';
+import { JobStatus, UserRole, } from '@prisma/client';
 import { GetApplicationDto } from './dto/get-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 
@@ -167,6 +167,7 @@ export class ApplicationsService {
             include: {
                 user: {
                     select: {
+                        id: true,
                         email: true,
                         firstName: true,
                         lastName: true
@@ -227,6 +228,7 @@ export class ApplicationsService {
             include: {
                 user: {
                     select: {
+                        id: true,
                         firstName: true,
                         lastName: true,
                         email: true
@@ -234,6 +236,7 @@ export class ApplicationsService {
                 },
                 job: {
                     select: {
+                        id: true,
                         title: true
                     }
                 }
@@ -245,6 +248,44 @@ export class ApplicationsService {
             message: 'Application updated successfully',
             data: updatedApplication,
         }
+    }
+
+    async getApplicationById(applicationId: number, userRole: string, userId: number) {
+        const application = await this.databaseService.application.findUnique({
+            where: {
+                id: applicationId
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                },
+                job: {
+                    omit: {
+                        createdAt: true,
+                        updatedAt: true,
+                    }
+                }
+            }
+        });
+
+        if (!application) throw new NotFoundException(`Application with id ${applicationId} not found`);
+        if (userRole !== UserRole.ADMIN) {
+            if (!(application.userId === userId || application.job.userId === userId)) {
+                throw new ForbiddenException('You do not have permission to view this application');
+            }
+        }
+
+        return {
+            status: 'success',
+            message: 'Application retrieved successfully',
+            data: application,
+        }
+
     }
 }
 

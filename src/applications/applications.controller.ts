@@ -83,4 +83,11 @@ export class ApplicationsController {
     ) {
         return this.applicationService.updateApplication(id, updateApplicationDto, req.user.userId);
     }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SEEKER)
+    @Get(':id')
+    async getApplicationById(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+        return this.applicationService.getApplicationById(id, req.user.role, req.user.userId)
+    }
 }
