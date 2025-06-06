@@ -90,6 +90,55 @@ export class JobsService {
         }
     }
 
+    async getUserJobs(getJobsDto: GetJobsDto, userId: number) {
+        const { page = 1, limit = 5, status } = getJobsDto;
+
+        const user = await this.databaseService.user.findUnique({
+            where: {
+                id: userId
+            } 
+        });
+        if (!user) throw new NotFoundException('user not found');
+
+        const where: any = {
+            userId,
+            status
+        };
+        if (status) where.status = status;
+
+        const jobs = await this.databaseService.job.findMany({
+            where,
+            include: {
+                jobLocation: true
+            },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+        
+        const total = await this.databaseService.job.count({
+            where,
+        })
+
+        const totalPages = Math.ceil(total / limit);
+
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
+
+        // implementing pagination
+        return {
+            status: 'success',
+            message: 'all jobs retrieved.',
+            data: jobs,
+            hasPrev,
+            hasNext,
+            totalPages
+        }
+    }
+
     async createJob(createJobDto: CreateJobDto, userId: number) {
         const { title, description, location, salary } = createJobDto;
 

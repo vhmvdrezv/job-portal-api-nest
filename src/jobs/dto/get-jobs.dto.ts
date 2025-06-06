@@ -1,14 +1,19 @@
+import { JobStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsInt, IsOptional } from "class-validator";
+import { IsEnum, IsInt, IsOptional } from "class-validator";
 
 export class GetJobsDto {
     @IsOptional()
-    @Type(() => Number)
-    @IsInt()
-    page: number;
+    @IsEnum(JobStatus)
+    status?: JobStatus
 
     @IsOptional()
     @Type(() => Number)
     @IsInt()
-    limit: number;
+    page?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    limit?: number;
 }

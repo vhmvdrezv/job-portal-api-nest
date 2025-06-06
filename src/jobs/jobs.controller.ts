@@ -9,6 +9,7 @@ import { UserRole } from '@prisma/client';
 import { OptionalAuthGuard } from 'src/auth/guards/optional-auth.guard';
 import { GetJobsDto } from './dto/get-jobs.dto';
 
+
 @Controller('jobs')
 export class JobsController {
     constructor(
@@ -19,6 +20,16 @@ export class JobsController {
     @Get()
     async getAllJobs(@Query() getJobsDto: GetJobsDto, @Req() req) {
         return this.jobsService.getAllJobs(getJobsDto, req.user);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.EMPLOYER)
+    @Get('my-jobs')
+    async getUserJobs(
+        @Query() getJobsDto: GetJobsDto,
+        @Req() req: any
+    ) {
+        return this.jobsService.getUserJobs(getJobsDto, req.user.userId)
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
