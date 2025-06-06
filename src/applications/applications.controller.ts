@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from '@prisma/client';
 import { diskStorage } from 'multer';
@@ -9,6 +9,7 @@ import { RolesGuard } from 'src/common/guards/roles.guards';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { ApplicationsService } from './applications.service';
 import { GetApplicationDto } from './dto/get-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 
 const storage = diskStorage({
     destination: './uploads/resumes',
@@ -66,7 +67,20 @@ export class ApplicationsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get()
-    async getAllApplications(@Query() getApplicationDto: GetApplicationDto) { 
+    async getAllApplications(
+        @Query() getApplicationDto: GetApplicationDto
+    ) { 
         return this.applicationService.getAllApplication(getApplicationDto);
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.EMPLOYER)
+    @Patch(':id')
+    async updateApplication(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() updateApplicationDto: UpdateApplicationDto,
+        @Req() req: any
+    ) {
+        return this.applicationService.updateApplication(id, updateApplicationDto, req.user.userId);
     }
 }

@@ -3,6 +3,7 @@ import { DatabaseService } from 'src/database/database.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { JobStatus, } from '@prisma/client';
 import { GetApplicationDto } from './dto/get-application.dto';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 
 @Injectable()
 export class ApplicationsService {
@@ -198,6 +199,51 @@ export class ApplicationsService {
                 hasPrev,
                 total
             }
+        }
+    }
+
+    async updateApplication(id: number, updateApplicationDto: UpdateApplicationDto, userId: number) {
+        const { status } = updateApplicationDto;
+        
+        const application = await this.databaseService.application.findUnique({
+            where: {
+                id
+            },
+            include: {
+                job: true
+            }
+        });
+
+        if (!application) throw new NotFoundException(`application not found`);
+        if (application.job.userId !== userId) throw new ForbiddenException('You can only update applications for your own jobs');
+
+        const updatedApplication = await this.databaseService.application.update({
+            where: {
+                id
+            },
+            data: {
+                status
+            },
+            include: {
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                },
+                job: {
+                    select: {
+                        title: true
+                    }
+                }
+            }
+        })
+
+        return {
+            status: 'success',
+            message: 'Application updated successfully',
+            data: updatedApplication,
         }
     }
 }
