@@ -1,29 +1,30 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 # Job Portal API
 
 A scalable, secure, and modern Job Portal REST API built with [NestJS](https://nestjs.com/), [Prisma ORM](https://www.prisma.io/), and PostgreSQL.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+  - [Database Migration & Seeding](#database-migration--seeding)
+  - [Running the Application](#running-the-application)
+  - [Running Tests](#running-tests)
+- [API Overview](#api-overview)
+  - [Authentication](#authentication)
+  - [Role-Based Access Control](#role-based-access-control)
+  - [Jobs](#jobs)
+  - [Applications](#applications)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## Features
 
@@ -31,8 +32,13 @@ A scalable, secure, and modern Job Portal REST API built with [NestJS](https://n
 - Email verification flow
 - Role-based access control (RBAC): Seeker, Employer, Admin
 - CRUD operations for jobs and job locations
+- Job application system with file upload (resume)
+- Pagination and filtering for listings
 - Modular, testable architecture
 - Input validation and error handling
+- Nodemailer integration for transactional emails
+
+---
 
 ## Tech Stack
 
@@ -42,6 +48,8 @@ A scalable, secure, and modern Job Portal REST API built with [NestJS](https://n
 - **Authentication:** JWT (Passport.js)
 - **Validation:** class-validator, class-transformer
 - **Mail:** Nodemailer
+
+---
 
 ## Getting Started
 
@@ -69,6 +77,7 @@ JWT_SECRET=your_jwt_secret
 MAIL_HOST=smtp.example.com
 MAIL_USER=your_email@example.com
 MAIL_PASS=your_email_password
+PORT=3000
 ```
 
 ### Database Migration & Seeding
@@ -99,11 +108,50 @@ npm run test
 npm run test:e2e
 ```
 
-## API Documentation
+---
 
-- RESTful endpoints for authentication and job management
-- Protected routes using JWT and RBAC
-- See controller files for detailed route information
+## API Overview
+
+### Authentication
+
+- **POST /auth/register** — Register a new user (Seeker or Employer)
+- **POST /auth/login** — Login and receive JWT
+- **POST /auth/resend-verification-email** — Resend email verification
+- **GET /auth/verify-email?token=** — Verify email
+
+### Role-Based Access Control
+
+- **Roles:** `ADMIN`, `EMPLOYER`, `SEEKER`
+- **Access Rules:**
+  - **ADMIN:** Can manage all jobs and applications.
+  - **EMPLOYER:** Can create jobs, see all their jobs (any status), and see all active jobs.
+  - **SEEKER:** Can see only active jobs and apply to them.
+  - **Anonymous:** Can see only active jobs.
+
+### Jobs
+
+- **GET /jobs** — List jobs (active only for seekers/anonymous, active+own for employers, all for admin)
+- **GET /jobs/:id** — Get job details (access controlled)
+- **POST /jobs** — Create a job (employer only)
+- **PATCH /jobs/:id** — Update a job (employer only, only if job is active)
+- **DELETE /jobs/:id** — Delete a job (employer only)
+- **GET /jobs/my-jobs** — List jobs created by the employer
+
+#### Admin Endpoints
+
+- **GET /admin/jobs** — List all jobs (admin only, with filters)
+- **PATCH /admin/jobs/:id** — Update job status (admin only)
+
+### Applications
+
+- **POST /applications/jobs/:jobId** — Apply to a job (seeker only, with resume upload)
+- **GET /applications/jobs/:jobId** — List applications for a job (employer only)
+- **GET /applications/my-applications** — List applications by the seeker
+- **GET /applications** — List all applications (admin only)
+- **PATCH /applications/:id** — Update application status (employer only)
+- **GET /applications/:id** — Get application details (admin, employer, or owner)
+
+---
 
 ## Project Structure
 
@@ -111,6 +159,7 @@ npm run test:e2e
 src/
   ├── auth/         # Authentication & user management
   ├── jobs/         # Job CRUD and business logic
+  ├── applications/ # Job applications logic
   ├── mail/         # Email service
   ├── database/     # Prisma database integration
   ├── common/       # Shared decorators, guards, etc.
@@ -118,11 +167,17 @@ src/
 prisma/
   ├── schema.prisma # Prisma schema
   └── seed.ts       # Seed data script
+uploads/
+  └── resumes/      # Uploaded resumes
 ```
+
+---
 
 ## Contributing
 
 Contributions are welcome! Please open issues or submit pull requests.
+
+---
 
 ## License
 

@@ -1,11 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { instanceToPlain } from 'class-transformer';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { JobStatus, UserRole } from '@prisma/client';
 import { GetJobsDto } from './dto/get-jobs.dto';
-import { take } from 'rxjs';
 import { GetJobsAdminDto } from './dto/get-jobs-admin.dto';
 import { UpdateJobAdminDto } from './dto/update-job-admin.dto';
 
