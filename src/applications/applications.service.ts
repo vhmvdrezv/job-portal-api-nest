@@ -91,9 +91,9 @@ export class ApplicationsService {
     async getAllApplication(getApplicationDto: GetApplicationDto) {
         const { page = 1, limit = 3, status } = getApplicationDto;
 
-        const where: any = {
-            status
-        }
+        
+        const where: any = { }
+        if (status) where.status = status;
 
         const applications = await this.databaseService.application.findMany({
             where,
@@ -139,9 +139,66 @@ export class ApplicationsService {
                 total
             }
         };
+    }
 
+    async getApplicationForJob(getApplicationDto: GetApplicationDto, jobId: number, userId: number) {
+        const { page = 1, limit = 3, status } = getApplicationDto;
 
+        const job = await this.databaseService.job.findUnique({
+            where: {
+                id: jobId
+            }
+        });
+        
+        if (!job) throw new NotFoundException(`Job with id ${jobId} not found`);
+        if (job.userId !== userId) throw new ForbiddenException('You can only view applications for your own jobs')
 
+        const where: any = { jobId };
+        if (status) {
+            where.status = status;
+        }
+
+        const applications = await this.databaseService.application.findMany({
+            where: {
+                status,
+                jobId
+            }, 
+            include: {
+                user: {
+                    select: {
+                        email: true,
+                        firstName: true,
+                        lastName: true
+                    }
+                }
+            },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+                userId: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit
+        });
+
+        const total = await this.databaseService.application.count({ where });
+        const totalPages = Math.ceil(total / limit);
+
+        const hasNext = page < total;
+        const hasPrev = page > 1;
+
+        return { 
+            status: 'success',
+            message: 'Applications retrieved successfully',
+            data: applications,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                hasNext,
+                hasPrev,
+                total
+            }
+        }
     }
 }
 

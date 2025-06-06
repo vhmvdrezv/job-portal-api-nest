@@ -51,6 +51,18 @@ export class ApplicationsController {
         return this.applicationService.createApplication(jobId, createApplicationDto, req.user.userId, file);
     }
 
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.EMPLOYER)
+    @Get('jobs/:jobId')
+    async getApplicationForJob(
+        @Query() getApplicationDto: GetApplicationDto,
+        @Param('jobId', ParseIntPipe) jobId: number,
+        @Req() req: any
+    ) {
+        return this.applicationService.getApplicationForJob(getApplicationDto, jobId, req.user.userId)
+    } 
+
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get()

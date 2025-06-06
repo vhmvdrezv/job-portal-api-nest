@@ -8,7 +8,6 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   
   const absoluteUploadsPath = join(process.cwd(), 'uploads');
-
   app.useStaticAssets(absoluteUploadsPath, {
     prefix: '/uploads/',
   });
