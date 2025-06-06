@@ -65,6 +65,16 @@ export class ApplicationsController {
     } 
 
     @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.SEEKER)
+    @Get('my-applications')
+    async getUserApplications(
+        @Query() getApplicationDto: GetApplicationDto,
+        @Req() req: any
+    ) {
+        return this.applicationService.getUserApplication(getApplicationDto, req.user.userId)
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get()
     async getAllApplications(

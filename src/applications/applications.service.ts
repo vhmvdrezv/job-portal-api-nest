@@ -186,7 +186,7 @@ export class ApplicationsService {
         const total = await this.databaseService.application.count({ where });
         const totalPages = Math.ceil(total / limit);
 
-        const hasNext = page < total;
+        const hasNext = page < totalPages;
         const hasPrev = page > 1;
 
         return { 
@@ -285,7 +285,55 @@ export class ApplicationsService {
             message: 'Application retrieved successfully',
             data: application,
         }
+    }
 
+    async getUserApplication(getApplicationDto: GetApplicationDto, userId: number) {
+        const { page = 1, limit = 3, status } = getApplicationDto;
+
+        const where: any = {
+            userId
+        };
+        if (status) where.status = status;
+
+        const user = await this.databaseService.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const applications = await this.databaseService.application.findMany({
+            where,
+            include: {
+                job: {
+                    select: {
+                        id: true,
+                        title: true,
+                    }
+                }
+            },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+        })
+        
+        const total = await this.databaseService.application.count({ where });
+        const totalPages = Math.ceil(total / limit);
+
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
+
+        return { 
+            status: 'success',
+            message: 'Applications retrieved successfully',
+            data: applications,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                hasNext,
+                hasPrev,
+                total
+            }
+        }
     }
 }
 
