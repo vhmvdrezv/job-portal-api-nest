@@ -1,15 +1,17 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { JobsModule } from './jobs/jobs.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
 import { ApplicationsModule } from './applications/applications.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { CommonModule } from './common/common.module';
+import { LoggerMiddleware } from './common/middlewares/logger.middleware';
 
 @Module({
   imports: [
+    CommonModule,
     JobsModule, 
     DatabaseModule,
     AuthModule,
@@ -27,7 +29,12 @@ import { APP_GUARD } from '@nestjs/core';
         ttl: 300000, // 5 minutes
         limit: 100
       }
-    ])
+    ]),
+    CommonModule
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
