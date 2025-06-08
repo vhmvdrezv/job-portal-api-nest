@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, UseGuards } from "@nestjs/common";
-import { RolesGuard } from "src/common/guards/roles.guards";
+import { RolesGuard } from "src/common/guards/roles.guard";
 import { GetJobsAdminDto } from "./dto/get-jobs-admin.dto";
 import { JobsService } from "./jobs.service";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
-import { Roles } from "src/common/decorators/roles.decorators";
+import { Roles } from "src/common/decorators/roles.decorator";
 import { UserRole } from "@prisma/client";
 import { UpdateJobAdminDto } from "./dto/update-job-admin.dto";
 
@@ -21,7 +21,7 @@ export class JobsAdminController {
     }
 
     @Patch(':id')
-    updateJob(@Param('id', ParseIntPipe)id: number, @Body() updateJobAdminDto: UpdateJobAdminDto) {
+    updateJob(@Param('id', ParseIntPipe) id: number, @Body() updateJobAdminDto: UpdateJobAdminDto) {
         return this.jobsService.updateJobAdmin(id, updateJobAdminDto)
     }
 }

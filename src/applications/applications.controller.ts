@@ -4,8 +4,8 @@ import { UserRole } from '@prisma/client';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Roles } from 'src/common/decorators/roles.decorators';
-import { RolesGuard } from 'src/common/guards/roles.guards';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { ApplicationsService } from './applications.service';
 import { GetApplicationDto } from './dto/get-application.dto';
@@ -65,7 +65,7 @@ export class ApplicationsController {
         @Req() req: any
     ) {
         return this.applicationService.getApplicationForJob(getApplicationDto, jobId, req.user.userId)
-    } 
+    }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.SEEKER)
@@ -82,7 +82,7 @@ export class ApplicationsController {
     @Get()
     async getAllApplications(
         @Query() getApplicationDto: GetApplicationDto
-    ) { 
+    ) {
         return this.applicationService.getAllApplication(getApplicationDto);
     }
 
