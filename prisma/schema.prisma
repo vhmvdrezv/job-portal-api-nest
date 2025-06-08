@@ -110,5 +110,5 @@ enum ApplicationStatus {
   PENDING
   ACCEPTED
   REJECTED
-  REVIWED
+  REVIEWED
 }
