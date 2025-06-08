@@ -10,6 +10,7 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { ApplicationsService } from './applications.service';
 import { GetApplicationDto } from './dto/get-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
 const storage = diskStorage({
     destination: './uploads/resumes',
@@ -33,8 +34,10 @@ const fileFilter = (req: any, file: Express.Multer.File, callback: any) => {
 export class ApplicationsController {
     constructor(private readonly applicationService: ApplicationsService) { }
 
+    @UseGuards(ThrottlerGuard)
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.SEEKER)
+    @Throttle({ short: { limit: 2, ttl: 60000 } })
     @Post('jobs/:jobId')
     @UseInterceptors(FileInterceptor('resume', {
         storage,

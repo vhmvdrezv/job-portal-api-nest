@@ -1,16 +1,19 @@
 import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { AuthService } from './auth.service';
-import { Verify } from 'crypto';
 import { VerifyEmailDto } from './dto/verfiy-email.dto';
 import { ResendVerificationEmailDto } from './dto/resend-verification-email.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('auth')
+
+@UseGuards(ThrottlerGuard)
 export class AuthController {
     constructor (
         private readonly authService: AuthService
     ) { };
+
 
     @UseGuards(LocalAuthGuard)
     @Post('login')
