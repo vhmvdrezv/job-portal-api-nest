@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from '@prisma/client';
 import { diskStorage } from 'multer';
@@ -26,7 +26,7 @@ const fileFilter = (req: any, file: Express.Multer.File, callback: any) => {
     if (allowedTypes.includes(file.mimetype)) {
         callback(null, true);
     } else {
-        callback(new Error('Only PDF, JPG, JPEG, and PNG files are allowed'), false);
+        callback(new BadRequestException('Only PDF, JPG, JPEG, and PNG files are allowed'));
     }
 };
 

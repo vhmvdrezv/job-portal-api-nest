@@ -8,6 +8,8 @@ import { VerifyEmailDto } from './dto/verfiy-email.dto';
 import { ResendVerificationEmailDto } from './dto/resend-verification-email.dto';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -154,6 +156,112 @@ export class AuthService {
 
         return {
             message: "email sent, verify your account "
+        }
+    }
+
+    async forgetPassword(forgetpasswordDto: ForgetPasswordDto) {
+        const { email } = forgetpasswordDto;
+        
+        const user = await this.databaseService.user.findUnique({
+            where: {
+                email
+            }
+        });
+
+        if (!user) {
+            return {
+                status: 'success',
+                message: 'If your email exists in our system, you will receive a password reset link'
+            }
+        }
+
+        if (!user.isEmailVerified) {
+            throw new BadRequestException('Please verify your email first');
+        }
+
+        // Delete any existing password reset tokens for this user
+        await this.databaseService.passwordReset.deleteMany({
+            where: {
+                userId: user.id
+            }
+        });
+
+        // send email
+        await this.sendPasswordResetEmail(user.id, user.email);
+
+
+        return {
+            status: 'success',
+            message: 'If your email exists in our system, you will receive a password reset link',
+        }
+    }
+
+    private async sendPasswordResetEmail(userId: number, email: string) {
+        const token = randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 10000 * 60 * 60); // 1 min
+
+        await this.databaseService.passwordReset.create({
+            data: {
+                token,
+                userId,
+                expiresAt: expires
+            }
+        });
+
+        const frontAppUrl = process.env.FRONTEND_URL || 'http://localhost:5000/';
+        const resetLink = `${frontAppUrl}reset-password?token=${token}`;
+        
+        await this.mailService.sendEmail({
+            to: email,
+            subject: 'Reset Your Password',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>Password Reset Request</h2>
+                    <p>You requested to reset your password. Click the link below to reset it:</p>
+                    <a href="${resetLink}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a>
+                    <p>This link will expire in 10 minutes.</p>
+                    <p>If you didn't request this password reset, please ignore this email.</p>
+                </div>
+            `
+        });        
+    }
+
+    async resetPassword(resetPasswordDto: ResetPasswordDto) {
+        const { token, newPassword } = resetPasswordDto;
+
+        const resetPasswordRecord = await this.databaseService.passwordReset.findUnique({
+            where: {
+                token
+            }
+        });
+
+        if (!resetPasswordRecord) {
+            throw new NotFoundException('Invalid or expired password reset token');
+        }
+        if (resetPasswordRecord.expiresAt < new Date()) {
+            throw new BadRequestException('Token expired, please request a new password reset');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await this.databaseService.$transaction([
+            this.databaseService.user.update({
+                where: {
+                    id: resetPasswordRecord.userId
+                },
+                data: {
+                    password: hashedPassword
+                }
+            }),
+            this.databaseService.passwordReset.delete({
+                where: {
+                    token
+                }
+            })
+        ]);
+
+        return {
+            status: 'success',
+            message: 'Password reset successfully'
         }
     }
 }

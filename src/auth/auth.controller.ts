@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { AuthService } from './auth.service';
 import { VerifyEmailDto } from './dto/verfiy-email.dto';
 import { ResendVerificationEmailDto } from './dto/resend-verification-email.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ForgetPasswordDto } from './dto/forget-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 
@@ -17,7 +19,7 @@ export class AuthController {
 
     @UseGuards(LocalAuthGuard)
     @Post('login')
-    async login(@Req() req) {
+    async login(@Req() req: any) {
         return this.authService.login(req.user);
     }
 
@@ -34,5 +36,19 @@ export class AuthController {
     @Get('verify-email')
     async verifyEmail(@Query() verifyEmailDto: VerifyEmailDto) {
         return this.authService.verifyEmail(verifyEmailDto);
+    }
+
+    @Post('forget-password')
+    async forgetPassword(
+        @Body() forgetpasswordDto: ForgetPasswordDto
+    ) {
+        return this.authService.forgetPassword(forgetpasswordDto);
+    }
+
+    @Patch('reset-password')
+    async resetPassword(
+        @Body() resetPasswordDto: ResetPasswordDto
+    ) {
+        return this.authService.resetPassword(resetPasswordDto);
     }
 }
