@@ -82,6 +82,10 @@ FRONT_APP_URL=http://your_front_app_url:your_port/
 ### Database Migration & Seeding
 
 ```bash
+# Development
+npx prisma migrate dev
+
+# Production
 npx prisma migrate deploy
 npm run seed
 ```
@@ -96,18 +100,6 @@ npm run start:dev
 npm run build
 npm run start:prod
 ```
-
-### Running Tests
-
-```bash
-# Unit tests
-npm run test
-
-# End-to-end tests
-npm run test:e2e
-```
-
----
 
 ## 🔐 Role-Based Access Control
 
