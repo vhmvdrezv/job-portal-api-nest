@@ -6,10 +6,20 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { VerifyEmailDto } from './dto/verfiy-email.dto';
 import { ResendVerificationEmailDto } from './dto/resend-verification-email.dto';
-import { User } from '@prisma/client';
+import { User, UserRole, UserStatus } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+
+interface GoogleUser {
+    googleId: string,
+    email: string;
+    firstName: string;
+    lastName: string;
+    accessToken: string;
+    refreshToken: string;
+    role: UserRole;
+}
 
 @Injectable()
 export class AuthService {
@@ -27,6 +37,10 @@ export class AuthService {
         })
 
         if (!user) return null;
+
+        if (!user.password) {
+            throw new ForbiddenException('Please log in using Google');
+        }
         if (!user.isEmailVerified) throw new ForbiddenException('Please verify your email before logging in');
 
         const match = await bcrypt.compare(password, user.password);
@@ -40,6 +54,52 @@ export class AuthService {
         const token = await this.jwtService.signAsync(payload);
         return { accessToken: token }
     } 
+
+    async googleLogin(googleUser: GoogleUser) {
+        const { email, firstName, lastName, googleId, role } = googleUser;
+        let user = await this.databaseService.user.findUnique({
+            where: { email }
+        });
+
+        if (user) {
+            if (!user.googleId) {
+                await this.databaseService.user.update({
+                    where: { email },
+                    data: {
+                        isEmailVerified: true,
+                        googleId
+                    }
+                });
+            } 
+        } else {
+            user = await this.databaseService.user.create({
+                data: {
+                    email,
+                    firstName,
+                    lastName,
+                    googleId,
+                    isEmailVerified: true,
+                    status: UserStatus.ACTIVE,
+                    role
+                }
+            });
+        }
+
+        const payload = { sub: user.id, role: user.role };
+        const token = await this.jwtService.signAsync(payload);
+
+        return {
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+            },
+            accessToken: token
+        }
+
+    }
 
     async register(registerDto: RegisterDto) {
         const { email, password, firstName, lastName, role } = registerDto;
