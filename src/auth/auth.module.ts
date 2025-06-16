@@ -7,6 +7,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleSeekerStrategy } from './strategies/google-seeker.strategy';
+import { GoogleEmployerStrategy } from './strategies/google-employer.strategy ';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     AuthService,
     LocalStrategy,
     JwtStrategy,
+    GoogleSeekerStrategy,
+    GoogleEmployerStrategy,
   ]
 })
 export class AuthModule {}

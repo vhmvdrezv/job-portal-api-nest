@@ -7,6 +7,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 
@@ -51,4 +52,35 @@ export class AuthController {
     ) {
         return this.authService.resetPassword(resetPasswordDto);
     }
+
+    @UseGuards(AuthGuard('google-seeker'))
+    @Get('google/seeker')
+    async googleSeekerLogin() {
+
+    }
+
+    @UseGuards(AuthGuard('google-seeker'))
+    @Get('google/seeker-callback')
+    async googleSeekerCallback(@Req() req: any) {
+        const { accessToken } = req.user;
+        return {
+            accessToken
+        }
+    }
+
+    @UseGuards(AuthGuard('google-employer'))
+    @Get('google/employer')
+    async googleEmployerLogin() {
+
+    }
+
+    @UseGuards(AuthGuard('google-employer'))
+    @Get('google/employer-callback')
+    async googleEmployerCallback(@Req() req: any) {
+        const { accessToken } = req.user;
+        return {
+            accessToken
+        }
+    }
+
 }
