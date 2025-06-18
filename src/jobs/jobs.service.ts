@@ -6,6 +6,7 @@ import { JobStatus, UserRole } from '@prisma/client';
 import { GetJobsDto } from './dto/get-jobs.dto';
 import { GetJobsAdminDto } from './dto/get-jobs-admin.dto';
 import { UpdateJobAdminDto } from './dto/update-job-admin.dto';
+import { contains } from 'class-validator';
 
 @Injectable()
 export class JobsService {
@@ -15,10 +16,21 @@ export class JobsService {
 
 
     async getAllJobs(getJobsDto: GetJobsDto, user: any) {
-        const { page = 1, limit = 5} = getJobsDto;
+        const { page = 1, limit = 5, titleSearch, citySearch } = getJobsDto;
 
         const where: any = { status: JobStatus.ACTIVE };
+        if (titleSearch) where.title = {
+            contains: titleSearch.trim(),
+            mode: 'insensitive'
+        }
 
+        if (citySearch) where.jobLocation = {
+            city: {
+                contains: citySearch.trim(),
+                mode: 'insensitive'
+            }
+        }
+        
         const jobs = await this.databaseService.job.findMany({
             where,
             include: { jobLocation: true },
@@ -51,11 +63,22 @@ export class JobsService {
     }
 
     async getAllJobsAdmin(getJobsDto: GetJobsAdminDto) {
-        const { page = 1, limit = 5, status } = getJobsDto;
+        const { page = 1, limit = 5, status, titleSearch, citySearch } = getJobsDto;
 
         const where: any = { };
 
         if (status) where.status = status;
+        if (titleSearch) where.title = {
+            contains: titleSearch.trim(),
+            mode: 'insensitive'
+        }
+
+        if (citySearch) where.jobLocation = {
+            city: {
+                contains: citySearch.trim(),
+                mode: 'insensitive'
+            }
+        }
 
         const jobs = await this.databaseService.job.findMany({
             where,

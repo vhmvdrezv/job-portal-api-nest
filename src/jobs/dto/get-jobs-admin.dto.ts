@@ -1,8 +1,17 @@
 import { JobStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsOptional } from "class-validator";
+import { IsEnum, IsInt, IsNotEmpty, IsOptional } from "class-validator";
 
 export class GetJobsAdminDto {
+
+    @IsOptional()
+    @IsNotEmpty()
+    titleSearch: string;
+
+    @IsOptional()
+    @IsNotEmpty()
+    citySearch: string;
+
     @IsOptional()
     @IsEnum(JobStatus)
     status?: JobStatus
