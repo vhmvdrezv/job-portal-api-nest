@@ -60,7 +60,7 @@ A scalable, secure, and modern Job Portal REST API built with [NestJS](https://n
 ### Installation
 
 ```bash
-git clone https://github.com/your-username/job-portal-api.git
+git clone https://github.com/vhmvdrezv/job-portal-api.git
 cd job-portal-api
 npm install
 ```
