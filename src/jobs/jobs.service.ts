@@ -15,9 +15,8 @@ export class JobsService {
     ) { };
 
 
-    async getAllJobs(getJobsDto: GetJobsDto, user: any) {
+    async getAllJobs(getJobsDto: GetJobsDto) {
         const { page = 1, limit = 5, titleSearch, citySearch } = getJobsDto;
-
         const where: any = { status: JobStatus.ACTIVE };
         if (titleSearch) where.title = {
             contains: titleSearch.trim(),

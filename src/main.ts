@@ -21,14 +21,10 @@ async function bootstrap() {
     .setTitle('Job Portal API')
     .setDescription('A comprehensive job portal API for job seekers and employers')
     .setVersion('1.0.0')
-    .addTag('auth', 'Authentication endpoints')
-    .addTag('jobs', 'Job management endpoints')
-    .addTag('application', 'Application management endpoints')
-    .addTag('admin', 'Admin management endpoints')
     .addBearerAuth(
       {
         type: 'http',
-        scheme: 'bearir',
+        scheme: 'bearer',
         bearerFormat: 'JWT',
         name: 'JWT',
         description: 'Enter JWT token',
@@ -43,7 +39,9 @@ async function bootstrap() {
   
   
   app.enableCors();
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true
+  }));
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
