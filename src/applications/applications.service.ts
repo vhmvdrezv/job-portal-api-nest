@@ -4,6 +4,7 @@ import { CreateApplicationDto } from './dto/create-application.dto';
 import { JobStatus, UserRole, } from '@prisma/client';
 import { GetApplicationDto } from './dto/get-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
+import { stat } from 'fs';
 
 @Injectable()
 export class ApplicationsService {
@@ -335,5 +336,72 @@ export class ApplicationsService {
             }
         }
     }
+
+    async getEmployerApplications(getApplicationDto: GetApplicationDto, userId: number) {
+        const { status, page = 1, limit = 5 } = getApplicationDto;
+
+        const user = await this.databaseService.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+
+        if (!user) throw new NotFoundException('User not found');
+
+        const where: any = { 
+            userId
+        };
+
+        if (status) where.status = status;
+
+        const applications = await this.databaseService.application.findMany({
+            where: {
+                job: {
+                    userId
+                }
+            },
+            include: {
+                job: {
+                    select: {
+                        id: true,
+                        title: true,
+                    }
+                },
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        id: true,
+                    }
+                }
+            },
+            omit: {
+                createdAt: true,
+                updatedAt: true,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+        })
+        
+        const total = await this.databaseService.application.count({ where });
+        const totalPages = Math.ceil(total / limit);
+
+        const hasNext = page < totalPages;
+        const hasPrev = page > 1;
+
+        return { 
+            status: 'success',
+            message: 'Applications retrieved successfully',
+            data: applications,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                hasNext,
+                hasPrev,
+                total
+            }
+        }
+    };
 }
 

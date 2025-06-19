@@ -169,6 +169,22 @@ export class ApplicationsController {
     }
 
     @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.EMPLOYER)
+    @Get('employer')
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Get current employer applications' })
+    @ApiQuery({ name: 'page', required: false, description: 'Page number', type: 'number', example: 1 })
+    @ApiQuery({ name: 'limit', required: false, description: 'Items per page', type: 'number', example: 3 })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by application status', enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'REVIEWED'] })
+    @ApiResponse({ status: 200, description: 'User applications retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only employers allowed' })
+    @ApiResponse({ status: 404, description: 'User not found' })
+    getEmployerApplications(@Query() getApplicationDto: GetApplicationDto, @Req() req) {
+        return this.applicationService.getEmployerApplications(getApplicationDto, req.user.userId)
+    }
+
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SEEKER)
     @Get(':id')
     @ApiBearerAuth('JWT-auth')
