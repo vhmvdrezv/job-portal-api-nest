@@ -10,10 +10,11 @@ enum Role {
 export class RegisterDto {
     @ApiProperty({
         description: 'User email address',
-        example: 'user@example.com'
+        example: 'user@example.com',
+        format: 'email'
     })
     @IsEmail()
-    email: string
+    email: string;
 
     @ApiProperty({
         description: 'User password (minimum 8 characters)',
@@ -21,27 +22,30 @@ export class RegisterDto {
         minLength: 8
     })
     @MinLength(8)
-    password: string
+    password: string;
 
     @ApiProperty({
         description: 'User first name',
-        example: 'John'
+        example: 'John',
+        minLength: 1
     })
     @IsNotEmpty()
     firstName: string;
 
     @ApiProperty({
         description: 'User last name',
-        example: 'Doe'
+        example: 'Doe',
+        minLength: 1
     })
     @IsNotEmpty()
-    lastName: string
+    lastName: string;
 
     @ApiProperty({
-        description: 'User role',
+        description: 'User role - either job seeker or employer',
         enum: Role,
-        example: Role.SEEKER
+        example: Role.SEEKER,
+        enumName: 'UserRole'
     })
     @IsEnum(Role)
-    role: Role 
+    role: Role;
 }
