@@ -11,6 +11,7 @@ import { ApplicationsService } from './applications.service';
 import { GetApplicationDto } from './dto/get-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 const storage = diskStorage({
     destination: './uploads/resumes',
@@ -46,6 +47,39 @@ export class ApplicationsController {
             fileSize: 10 * 1024 * 1024 // 10MB limit
         }
     }))
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Create job application' })
+    @ApiParam({ name: 'jobId', description: 'Job ID to apply for', type: 'number' })
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        description: 'Application data with optional resume file',
+        schema: {
+            type: 'object',
+            properties: {
+                description: {
+                    type: 'string',
+                    description: 'Application description',
+                    minLength: 10,
+                    maxLength: 2000,
+                    example: 'I am very interested in this position because...'
+                },
+                resume: {
+                    type: 'string',
+                    format: 'binary',
+                    description: 'Resume file (PDF, JPG, JPEG, PNG, max 10MB)'
+                }
+            },
+            required: ['description']
+        }
+    })
+    @ApiResponse({ status: 201, description: 'Application submitted successfully' })
+    @ApiResponse({ status: 400, description: 'Bad request - Invalid data or file type' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only job seekers allowed' })
+    @ApiResponse({ status: 404, description: 'Job not found' })
+    @ApiResponse({ status: 409, description: 'Already applied to this job' })
+    @ApiResponse({ status: 429, description: 'Too many requests' })
+    
     async createApplication(
         @Param('jobId', ParseIntPipe) jobId: number,
         @Body() createApplicationDto: CreateApplicationDto,
@@ -59,6 +93,17 @@ export class ApplicationsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.EMPLOYER)
     @Get('jobs/:jobId')
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Get applications for a specific job' })
+    @ApiParam({ name: 'jobId', description: 'Job ID', type: 'number' })
+    @ApiQuery({ name: 'page', required: false, description: 'Page number', type: 'number', example: 1 })
+    @ApiQuery({ name: 'limit', required: false, description: 'Items per page', type: 'number', example: 3 })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by application status', enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'REVIEWED'] })
+    @ApiResponse({ status: 200, description: 'Applications retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only employers can view job applications' })
+    @ApiResponse({ status: 404, description: 'Job not found' })
+    
     async getApplicationForJob(
         @Query() getApplicationDto: GetApplicationDto,
         @Param('jobId', ParseIntPipe) jobId: number,
@@ -70,6 +115,15 @@ export class ApplicationsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.SEEKER)
     @Get('my-applications')
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Get current user applications' })
+    @ApiQuery({ name: 'page', required: false, description: 'Page number', type: 'number', example: 1 })
+    @ApiQuery({ name: 'limit', required: false, description: 'Items per page', type: 'number', example: 3 })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by application status', enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'REVIEWED'] })
+    @ApiResponse({ status: 200, description: 'User applications retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only job seekers allowed' })
+    @ApiResponse({ status: 404, description: 'User not found' })
     async getUserApplications(
         @Query() getApplicationDto: GetApplicationDto,
         @Req() req: any
@@ -80,6 +134,14 @@ export class ApplicationsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
     @Get()
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Get all applications (Admin only)' })
+    @ApiQuery({ name: 'page', required: false, description: 'Page number', type: 'number', example: 1 })
+    @ApiQuery({ name: 'limit', required: false, description: 'Items per page', type: 'number', example: 3 })
+    @ApiQuery({ name: 'status', required: false, description: 'Filter by application status', enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'REVIEWED'] })
+    @ApiResponse({ status: 200, description: 'All applications retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only admins allowed' })
     async getAllApplications(
         @Query() getApplicationDto: GetApplicationDto
     ) {
@@ -89,6 +151,15 @@ export class ApplicationsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.EMPLOYER)
     @Patch(':id')
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Update application status' })
+    @ApiParam({ name: 'id', description: 'Application ID', type: 'number' })
+    @ApiBody({ type: UpdateApplicationDto })
+    @ApiResponse({ status: 200, description: 'Application updated successfully' })
+    @ApiResponse({ status: 400, description: 'Bad request' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only employers can update applications for their jobs' })
+    @ApiResponse({ status: 404, description: 'Application not found' })
     async updateApplication(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateApplicationDto: UpdateApplicationDto,
@@ -100,6 +171,13 @@ export class ApplicationsController {
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.EMPLOYER, UserRole.SEEKER)
     @Get(':id')
+    @ApiBearerAuth('JWT-auth')
+    @ApiOperation({ summary: 'Get application by ID' })
+    @ApiParam({ name: 'id', description: 'Application ID', type: 'number' })
+    @ApiResponse({ status: 200, description: 'Application retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Only application owner, job owner, or admin allowed' })
+    @ApiResponse({ status: 404, description: 'Application not found' })
     async getApplicationById(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
         return this.applicationService.getApplicationById(id, req.user.role, req.user.userId)
     }
