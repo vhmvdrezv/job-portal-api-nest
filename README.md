@@ -16,6 +16,7 @@ A scalable, secure, and modern Job Portal REST API built with [NestJS](https://n
   - [Running the Application](#running-the-application)
   - [Running Tests](#running-tests)
 - [🔐 Role-Based Access Control](#-role-based-access-control)
+- [🔑 OAuth Integration](#-oauth-integration)
 - [📚 API Overview](#-api-overview)
 - [📁 Project Structure](#-project-structure)
 - [🤝 Contributing](#-contributing)
@@ -28,6 +29,7 @@ A scalable, secure, and modern Job Portal REST API built with [NestJS](https://n
 - **User Authentication**: Secure JWT-based login and registration
 - **Email Verification**: Email confirmation for new users
 - **Role-Based Access Control**: `ADMIN`, `EMPLOYER`, `SEEKER`, and public (anonymous) access
+- **Google OAuth**: Login/register with Google for both seekers and employers
 - **Job Management**: Employers can create, update, and delete jobs; seekers can view and apply
 - **Job Applications**: Seekers can apply to jobs with resume upload
 - **Pagination & Filtering**: For jobs and applications
@@ -42,7 +44,7 @@ A scalable, secure, and modern Job Portal REST API built with [NestJS](https://n
 - **Backend Framework:** [NestJS](https://nestjs.com/)
 - **ORM:** [Prisma](https://www.prisma.io/)
 - **Database:** PostgreSQL
-- **Authentication:** JWT (Passport.js)
+- **Authentication:** JWT (Passport.js), Google OAuth
 - **Validation:** class-validator, class-transformer
 - **Mail:** Nodemailer
 - **File Uploads:** Multer
@@ -77,6 +79,9 @@ MAIL_USER=your_email@example.com
 MAIL_PASS=your_email_password
 PORT=3000
 FRONT_APP_URL=http://your_front_app_url:your_port/
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 ```
 
 ### Database Migration & Seeding
@@ -96,10 +101,8 @@ npm run seed
 # Development
 npm run start:dev
 
-# Production
-npm run build
-npm run start:prod
-```
+
+---
 
 ## 🔐 Role-Based Access Control
 
@@ -109,6 +112,26 @@ npm run start:prod
 | EMPLOYER  | Active jobs + own jobs      | Yes (own jobs)                | No                | Own jobs' apps      |
 | SEEKER    | Only active jobs            | No                            | Yes               | Own applications    |
 | Anonymous | Only active jobs            | No                            | No                | No                  |
+
+---
+
+## 🔑 OAuth Integration
+
+This project supports **Google OAuth** for both job seekers and employers.
+
+- **Dynamic Role Assignment:**  
+  Users can register/login with Google as either a SEEKER or EMPLOYER.  
+  The role is determined by the OAuth endpoint used:
+  - `/auth/google/seeker` and `/auth/google/seeker-callback` for seekers
+  - `/auth/google/employer` and `/auth/google/employer-callback` for employers
+
+- **How it works:**
+  1. Frontend redirects user to the appropriate endpoint based on desired role.
+  2. User authenticates with Google.
+  3. On callback, the backend creates or updates the user with the correct role and issues a JWT.
+
+- **Security:**  
+  Only valid roles are accepted. The backend ensures role assignment is safe and type-checked.
 
 ---
 
@@ -122,6 +145,13 @@ npm run start:prod
 - `GET /auth/verify-email?token=...` — Verify email
 - `POST /auth/forget-password` — Request password reset
 - `PATCH /auth/reset-password` — Reset password
+
+#### Google OAuth
+
+- `GET /auth/google/seeker` — Google OAuth login for job seekers
+- `GET /auth/google/seeker-callback` — Google OAuth callback for job seekers
+- `GET /auth/google/employer` — Google OAuth login for employers
+- `GET /auth/google/employer-callback` — Google OAuth callback for employers
 
 ### Jobs
 
@@ -174,7 +204,5 @@ Contributions are welcome! Please open issues or submit pull requests.
 
 ---
 
+
 **Author:** [Ahmadreza](https://github.com/vhmvdrezv)
-
----
-
