@@ -135,7 +135,7 @@ export class AuthService {
             }
         });
 
-        const verificationLink = `http://localhost:3000/auth/verify-email?token=${token}`;
+        const verificationLink = `https://job-portal-api-nest.onrender.com/auth/verify-email?token=${token}`;
         await this.mailService.sendEmail({
             to: email,
             subject: 'Verify your email',
