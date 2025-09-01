@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Seeding database ...');
 
-  // ==== Users ====
   const ali = await prisma.user.create({
     data: {
       firstName: 'علی',
@@ -94,7 +93,6 @@ async function main() {
     ],
   });
 
-  // ==== Jobs for Reza ====
   await prisma.job.createMany({
     data: [
       {
@@ -128,7 +126,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Seeding completed with users and jobs (without applications).');
+  console.log('✅ Seeding completed .');
 }
 
 main()
